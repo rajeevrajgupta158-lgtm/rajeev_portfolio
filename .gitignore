@@ -1,0 +1,16 @@
+# Video source files (heavy)
+*.mp4
+*.mov
+*.mkv
+*.avi
+
+# Test outputs & caches
+test_*
+*.log
+scenes.txt
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
