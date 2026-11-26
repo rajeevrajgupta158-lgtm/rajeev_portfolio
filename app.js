@@ -15,10 +15,15 @@
 
   // --- CONFIGURATION ---
   const TOTAL_FRAMES = 240;
-  const FRAME_DIR = 'frames/';
   const FRAME_PREFIX = 'frame_';
   const FRAME_EXT = '.webp';
   const KEYFRAME_INTERVAL = 8; // Load every 8th frame first for instant interactivity
+
+  // Responsive frame directory: vertical 9:16 portrait frames for phones, 16:9 for desktop
+  const isMobileViewport = () => window.innerWidth <= 768 || (window.innerHeight > window.innerWidth && window.innerWidth <= 1024);
+  let currentMode = isMobileViewport() ? 'mobile' : 'desktop';
+  let frameDir = currentMode === 'mobile' ? 'frames-mobile/' : 'frames/';
+  let activePreloadId = 0;
 
   // DOM Elements
   const canvas = document.getElementById('hero-canvas');
@@ -52,26 +57,29 @@
     return String(num).padStart(4, '0');
   }
 
-  // --- PROGRESSIVE FRAME LOADER (Design with Alok's FrameStore) ---
+  // --- PROGRESSIVE FRAME LOADER (Kohra Engine) ---
   function preloadFrames() {
+    const thisPreloadId = ++activePreloadId;
     let loadedCount = 0;
     let failedCount = 0;
 
     function loadFrame(index) {
       if (frameStore.has(index)) return;
       const img = new Image();
-      img.src = `${FRAME_DIR}${FRAME_PREFIX}${padFrame(index + 1)}${FRAME_EXT}`;
+      img.src = `${frameDir}${FRAME_PREFIX}${padFrame(index + 1)}${FRAME_EXT}`;
       
       img.onload = () => {
+        if (thisPreloadId !== activePreloadId) return; // Stale request from previous mode
         frameStore.set(index, img);
         loadedCount++;
         if (loadedCount % 10 === 0 && hudClarity) {
           const pct = Math.min(100, Math.round((loadedCount / TOTAL_FRAMES) * 100));
-          hudClarity.textContent = `CACHED ${pct}%`;
+          hudClarity.textContent = `CACHED ${pct}% (${currentMode.toUpperCase()})`;
         }
       };
 
       img.onerror = () => {
+        if (thisPreloadId !== activePreloadId) return;
         failedCount++;
         // If the first few frames fail to load, gracefully switch to Procedural Cinematic Mode
         if (failedCount > 5 && loadedCount === 0) {
@@ -81,20 +89,25 @@
       };
     }
 
-    // Step 1: Preload Every 8th Frame First (Keyframes)
+    // Step 1: Preload Every 8th Frame First (Keyframes) for instantaneous scrubbing
     for (let i = 0; i < TOTAL_FRAMES; i += KEYFRAME_INTERVAL) {
       loadFrame(i);
     }
     loadFrame(TOTAL_FRAMES - 1);
 
     // Step 2: Preload intermediate frames in the background
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        for (let i = 0; i < TOTAL_FRAMES; i++) {
-          loadFrame(i);
-        }
-      }, 300);
-    });
+    const loadRemaining = () => {
+      for (let i = 0; i < TOTAL_FRAMES; i++) {
+        if (thisPreloadId !== activePreloadId) break;
+        loadFrame(i);
+      }
+    };
+
+    if (document.readyState === 'complete') {
+      setTimeout(loadRemaining, 100);
+    } else {
+      window.addEventListener('load', () => setTimeout(loadRemaining, 300), { once: true });
+    }
   }
 
   // Find nearest cached frame (for progressive fallback)
@@ -114,6 +127,16 @@
   function handleResize() {
     const newWidth = window.innerWidth;
     const newHeight = window.innerHeight;
+
+    // Check if mode switched between Mobile Portrait (9:16) and Desktop/Landscape (16:9)
+    const newMode = isMobileViewport() ? 'mobile' : 'desktop';
+    if (newMode !== currentMode) {
+      currentMode = newMode;
+      frameDir = currentMode === 'mobile' ? 'frames-mobile/' : 'frames/';
+      frameStore.clear(); // Clear cached frames of previous aspect ratio
+      imagesAvailable = true;
+      preloadFrames(); // Reload keyframes for new viewport orientation
+    }
 
     // Mobile optimization: When scrolling on mobile browsers (iOS Safari, Android Chrome),
     // dynamic address bar show/hide fires resize events.

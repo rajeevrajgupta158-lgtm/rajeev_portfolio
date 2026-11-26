@@ -80,11 +80,15 @@ npx serve .
 
 ```text
 cinematic-portfolio/
-├── index.html           # Main HTML structure with chapters & telemetry HUD
-├── styles.css           # iPhone frosted glass theme, typography, mist
-├── app.js               # Canvas FrameStore engine, scroll controller, direct mail API
-├── convert-video.bat    # 1-Click Windows batch script to convert any MP4 to WebP frames
-├── convert-video.ps1    # PowerShell script alternative
-├── frames/              # 240 WebP frames (frame_0001.webp ... frame_0240.webp)
-└── README.md            # Complete documentation
+├── index.html                  # Main HTML structure with chapters & telemetry HUD
+├── styles.css                  # iPhone frosted glass theme, typography, responsive layout
+├── app.js                      # Canvas FrameStore engine with responsive dual-mode orientation
+├── vercel.json                 # Vercel deployment with Edge CDN immutable caching
+├── convert-video.bat           # Converts MP4 to 1080p landscape WebP frames
+├── convert-video.ps1           # PowerShell version for landscape frames
+├── convert-video-mobile.bat    # Converts MP4 to 9:16 vertical portrait WebP frames
+├── convert-video-mobile.ps1    # PowerShell version for portrait frames
+├── frames/                     # 240 Desktop WebP frames (1920x1080)
+├── frames-mobile/              # 240 Mobile Portrait WebP frames (720x1280)
+└── README.md                   # Complete documentation
 ```
