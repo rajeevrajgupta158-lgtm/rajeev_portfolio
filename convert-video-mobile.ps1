@@ -1,5 +1,5 @@
 param (
-    [string]$Video = "raw_waterfall.mp4"
+    [string]$Video = "raw_waterfall_mobile.mp4"
 )
 
 Write-Host "========================================================" -ForegroundColor Cyan
@@ -8,7 +8,7 @@ Write-Host "========================================================" -Foregroun
 
 if (-not (Test-Path $Video)) {
     Write-Host "[!] Video file not found: $Video" -ForegroundColor Yellow
-    Write-Host "Usage: .\convert-video-mobile.ps1 -Video 'path\to\your-video.mp4'" -ForegroundColor White
+    Write-Host "Usage: .\convert-video-mobile.ps1 -Video 'path\to\your-mobile-video.mp4'" -ForegroundColor White
     exit
 }
 
@@ -17,7 +17,7 @@ if (-not (Test-Path "frames-mobile")) {
 }
 
 Write-Host "[*] Extracting 9:16 Vertical WebP frames from: $Video..." -ForegroundColor Green
-ffmpeg -y -ss 00:00:25.4 -t 3.2 -i $Video -vf "crop=919:1634:1460:263,scale=720:1280" -r 75 -frames:v 240 -c:v libwebp -quality 80 "frames-mobile\frame_%04d.webp"
+ffmpeg -y -i $Video -vf "fps=240/10.533333,scale=720:1280:flags=lanczos" -frames:v 240 -c:v libwebp -quality 80 "frames-mobile\frame_%04d.webp"
 
 $frameCount = (Get-ChildItem "frames-mobile\*.webp").Count
 Write-Host "[+] Successfully generated $frameCount mobile portrait frames in 'frames-mobile/'!" -ForegroundColor Green

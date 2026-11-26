@@ -11,7 +11,7 @@ set INPUT_FILE=%1
 
 if "%INPUT_FILE%"=="" (
     echo [!] No video specified.
-    set /p INPUT_FILE="Enter video filename (e.g. hero.mp4): "
+    set /p INPUT_FILE="Enter video filename (e.g. mobile_hero.mp4): "
 )
 
 if not exist "%INPUT_FILE%" (
@@ -28,7 +28,7 @@ echo [*] Extracting 9:16 Portrait frames from: %INPUT_FILE%
 echo [*] Scaling to 720x1280 (9:16 Vertical), WebP format (Quality: 80)...
 echo.
 
-ffmpeg -y -ss 00:00:25.4 -t 3.2 -i "%INPUT_FILE%" -vf "crop=919:1634:1460:263,scale=720:1280" -r 75 -frames:v 240 -c:v libwebp -quality 80 "frames-mobile\frame_%%04d.webp"
+ffmpeg -y -i "%INPUT_FILE%" -vf "fps=240/10.533333,scale=720:1280:flags=lanczos" -frames:v 240 -c:v libwebp -quality 80 "frames-mobile\frame_%%04d.webp"
 
 echo.
 echo [DONE] 240 vertical mobile frames extracted into 'frames-mobile/' folder!
