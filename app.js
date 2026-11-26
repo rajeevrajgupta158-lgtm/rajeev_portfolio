@@ -20,9 +20,19 @@
   const KEYFRAME_INTERVAL = 8; // Load every 8th frame first for instant interactivity
 
   // Responsive frame directory: vertical 9:16 portrait frames for phones, 16:9 for desktop
-  const isMobileViewport = () => window.innerWidth <= 768 || (window.innerHeight > window.innerWidth && window.innerWidth <= 1024);
+  const isMobileViewport = () => {
+    // 1. Standard mobile phone width (e.g. 360px - 768px)
+    if (window.innerWidth <= 768) return true;
+    // 2. Mobile Device check (iOS Safari, Android Chrome) in portrait
+    const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isPortrait = window.innerHeight >= window.innerWidth;
+    if (isMobileUA && isPortrait) return true;
+    // 3. Tablet portrait check
+    if (isPortrait && window.innerWidth <= 1024) return true;
+    return false;
+  };
   let currentMode = isMobileViewport() ? 'mobile' : 'desktop';
-  let frameDir = currentMode === 'mobile' ? 'frames-mobile/' : 'frames/';
+  let frameDir = currentMode === 'mobile' ? 'frames-mobile-v2/' : 'frames/';
   let activePreloadId = 0;
 
   // DOM Elements
@@ -132,7 +142,7 @@
     const newMode = isMobileViewport() ? 'mobile' : 'desktop';
     if (newMode !== currentMode) {
       currentMode = newMode;
-      frameDir = currentMode === 'mobile' ? 'frames-mobile/' : 'frames/';
+      frameDir = currentMode === 'mobile' ? 'frames-mobile-v2/' : 'frames/';
       frameStore.clear(); // Clear cached frames of previous aspect ratio
       imagesAvailable = true;
       preloadFrames(); // Reload keyframes for new viewport orientation
